@@ -19,6 +19,12 @@ pub struct InternalTerminalState {
     terminal_buffer: Vec<char>,
 }
 
+impl Default for InternalTerminalState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl InternalTerminalState {
     pub fn new() -> Self {
         Self {
@@ -68,9 +74,21 @@ impl StatefulWidget for InternalTerminalWidget {
         let text = state.get_text();
         let spans = Line::from(vec![Span::raw("> "), Span::raw(text)]);
 
-        Paragraph::new(spans)
+        let paragraph = Paragraph::new(spans)
             .alignment(Alignment::Left)
-            .wrap(Wrap { trim: true })
+            .wrap(Wrap { trim: true });
+
+        let bordered_area = ratatui::layout::Rect {
+            x: area.x + 2,
+            y: area.y + 2,
+            width: area.width - 2,
+            height: area.height - 4,
+        };
+
+        ratatui::widgets::Block::default()
+            .borders(ratatui::widgets::Borders::ALL)
             .render(area, buf);
+
+        paragraph.render(bordered_area, buf);
     }
 }
