@@ -660,17 +660,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "learning_rataui"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "crossterm",
- "ratatui",
- "tokio",
- "yahoo_finance_api",
-]
-
-[[package]]
 name = "libc"
 version = "0.2.171"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1314,6 +1303,17 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "terminal_asset_heatmap"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "crossterm",
+ "ratatui",
+ "tokio",
+ "yahoo_finance_api",
 ]
 
 [[package]]
