@@ -1,15 +1,14 @@
 use ratatui::{
-    layout::Alignment,
+    style::{Modifier, Style, Stylize},
     text::{Line, Span},
-    widgets::{Paragraph, StatefulWidget, Widget, Wrap},
+    widgets::{Block, Paragraph, StatefulWidget, Widget},
 };
 
 const MAX_CHAR: usize = 20;
 
-// TODO: Save & current stocks to/from some storage
-// Add some defaults
 pub enum Command {
     Exit,
+    Update,
     AddAsset(String),
     RemoveAsset(String),
     ChangeInterval(String),
@@ -52,6 +51,7 @@ impl InternalTerminalState {
         self.terminal_buffer.clear();
         match split_command.as_slice() {
             ["EXIT"] => Some(Command::Exit),
+            ["UPDATE"] => Some(Command::Update),
             ["ADD", subject] => Some(Command::AddAsset(subject.to_string())),
             ["REMOVE", subject] => Some(Command::RemoveAsset(subject.to_string())),
             ["INTERVAL", subject] => Some(Command::ChangeInterval(subject.to_string())),
@@ -72,23 +72,17 @@ impl StatefulWidget for InternalTerminalWidget {
         state: &mut Self::State,
     ) {
         let text = state.get_text();
-        let spans = Line::from(vec![Span::raw("> "), Span::raw(text)]);
+        let spans = Line::from(vec![
+            Span::raw(" > "),
+            Span::raw(text),
+            Span::styled("█", Style::default().fg(ratatui::style::Color::DarkGray)),
+        ]);
 
-        let paragraph = Paragraph::new(spans)
-            .alignment(Alignment::Left)
-            .wrap(Wrap { trim: true });
+        let input = Paragraph::new(spans)
+            .style(Style::default())
+            .block(Block::bordered().title(" Terminal "))
+            .add_modifier(Modifier::RAPID_BLINK);
 
-        let bordered_area = ratatui::layout::Rect {
-            x: area.x + 2,
-            y: area.y + 2,
-            width: area.width - 2,
-            height: area.height - 4,
-        };
-
-        ratatui::widgets::Block::default()
-            .borders(ratatui::widgets::Borders::ALL)
-            .render(area, buf);
-
-        paragraph.render(bordered_area, buf);
+        input.render(area, buf);
     }
 }
