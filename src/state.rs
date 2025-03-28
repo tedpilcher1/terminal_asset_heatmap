@@ -9,6 +9,17 @@ use yahoo_finance_api::YahooConnector;
 
 use crate::{assets::Asset, internal_terminal::InternalTerminalState, interval::Interval};
 
+const LIGHT_GREEN: (f32, f32, f32) = (200.0, 255.0, 200.0);
+const SOLID_GREEN: (f32, f32, f32) = (0.0, 255.0, 0.0);
+
+const LIGHT_RED: (f32, f32, f32) = (255.0, 200.0, 200.0);
+const SOLID_RED: (f32, f32, f32) = (255.0, 0.0, 0.0);
+
+enum Gradient {
+    Green,
+    Red,
+}
+
 pub struct State {
     pub assets: HashMap<String, Asset>,
     pub internal_terminal: InternalTerminalState,
@@ -175,11 +186,15 @@ impl AssetHeatmapWidget {
         };
 
         let color = if price_change_pct > 0.0 {
-            Color::Green
+            let percentage = (price_change_pct.min(10.0) * 10.0) as f32;
+            let rgb = Self::get_gradient(percentage, Gradient::Green);
+            Color::Rgb(rgb.0, rgb.1, rgb.2)
         } else if price_change_pct < 0.0 {
-            Color::Red
+            let percentage = (price_change_pct.abs().min(10.0) * 10.0) as f32;
+            let rgb = Self::get_gradient(percentage, Gradient::Red);
+            Color::Rgb(rgb.0, rgb.1, rgb.2)
         } else {
-            Color::Blue
+            Color::Rgb(100, 100, 100)
         };
 
         let block = Block::default()
@@ -189,8 +204,26 @@ impl AssetHeatmapWidget {
                 price_change_pct
             ))
             .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Black))
+            .title_style(Style::default().fg(Color::Black))
             .style(Style::default().bg(color));
 
         block.render(area, buf);
+    }
+
+    fn get_gradient(percentage: f32, gradient: Gradient) -> (u8, u8, u8) {
+        let percentage = percentage.clamp(0.0, 100.0);
+        let (start_colour, end_colour) = match gradient {
+            Gradient::Green => (LIGHT_GREEN, SOLID_GREEN),
+            Gradient::Red => (LIGHT_RED, SOLID_RED),
+        };
+
+        let normalized = percentage / 100.0;
+
+        let r = start_colour.0 + (end_colour.0 - start_colour.0) * normalized;
+        let g = start_colour.1 + (end_colour.1 - start_colour.1) * normalized;
+        let b = start_colour.2 + (end_colour.2 - start_colour.2) * normalized;
+
+        (r.round() as u8, g.round() as u8, b.round() as u8)
     }
 }
